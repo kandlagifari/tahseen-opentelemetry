@@ -40,12 +40,10 @@ type ResultResponse struct {
 var rdb *redis.Client
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
-
 	ctx := context.Background()
-	shutdown := initOTel(ctx, "tahseen-api")
+	shutdown, logger := initOTel(ctx, "tahseen-api")
 	defer shutdown()
+	slog.SetDefault(logger)
 
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
