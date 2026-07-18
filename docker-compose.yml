@@ -9,6 +9,23 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - app
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.74.0
+    container_name: redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app
+      - observability
     restart: unless-stopped
 
   api:
@@ -20,9 +37,15 @@ services:
     environment:
       - REDIS_ADDR=redis:6379
       - PORT=8080
+      - OTEL_SERVICE_NAME=tahseen-api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+      - OTEL_EXPORTER_OTLP_INSECURE=true
     depends_on:
       redis:
         condition: service_healthy
+    networks:
+      - app
+      - observability
     restart: unless-stopped
 
   worker:
@@ -36,6 +59,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    networks:
+      - app
     restart: unless-stopped
 
   ui:
@@ -49,4 +74,108 @@ services:
       - ./apps/ui/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - api
+    networks:
+      - app
     restart: unless-stopped
+
+  # ── Observability ──────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.146.1
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # OTel internal metrics
+      - "8889:8889"   # Prometheus metrics exporter
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - app
+      - observability
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.9.1
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+    volumes:
+      - ./observability/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - observability
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.6.6
+    container_name: loki
+    user: root
+    command:
+      - "-config.file=/etc/loki/loki.yaml"
+      - "-target=all"
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+      - loki-wal:/wal
+    ports:
+      - "3100:3100"
+    networks:
+      - observability
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:2.10.1
+    container_name: tempo
+    command:
+      - "-config.file=/etc/tempo/tempo.yaml"
+      - "-target=all"
+    volumes:
+      - ./observability/tempo-config.yaml:/etc/tempo/tempo.yaml:ro
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"
+    networks:
+      - observability
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.3
+    container_name: grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - observability
+    restart: unless-stopped
+
+networks:
+  app:
+    driver: bridge
+  observability:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  loki-data:
+  loki-wal:
+  tempo-data:
+  grafana-data:

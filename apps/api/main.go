@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -42,6 +43,10 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
+	ctx := context.Background()
+	shutdown := initOTel(ctx, "tahseen-api")
+	defer shutdown()
+
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
 		redisAddr = "localhost:6379"
@@ -49,9 +54,9 @@ func main() {
 
 	rdb = redis.NewClient(&redis.Options{Addr: redisAddr})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	redisCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	if err := rdb.Ping(ctx).Err(); err != nil {
+	if err := rdb.Ping(redisCtx).Err(); err != nil {
 		slog.Error("failed to connect to redis", "error", err)
 		os.Exit(1)
 	}
@@ -72,7 +77,7 @@ func main() {
 	}
 
 	slog.Info("starting server", "port", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
+	if err := http.ListenAndServe(":"+port, otelhttp.NewHandler(r, "tahseen-api")); err != nil {
 		slog.Error("server error", "error", err)
 		os.Exit(1)
 	}
