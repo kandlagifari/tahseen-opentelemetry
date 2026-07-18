@@ -1,0 +1,25 @@
+# Go
+apps/api/api
+apps/api/*.exe
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.python-version
+
+# uv
+.uv/
+
+# Docker
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tahseen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header .logo { font-family: 'Amiri', serif; font-size: 2.2rem; color: #fff; line-height: 1.2; }
+    .header .logo span { color: #3fb950; }
+    .header .tagline { font-size: 0.75rem; color: #484f58; margin-top: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+
+    .input-label { font-size: 0.72rem; color: #8b949e; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      color: #f0f0f0;
+      font-family: 'Amiri', serif;
+      font-size: 1.7rem;
+      line-height: 2.2;
+      padding: 0.85rem 1rem;
+      resize: vertical;
+      outline: none;
+      direction: rtl;
+      text-align: right;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: #3fb950; box-shadow: 0 0 0 3px rgba(63,185,80,0.12); }
+    textarea::placeholder { color: #21262d; }
+
+    button {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: #238636;
+      color: #fff;
+      border: 1px solid #2ea043;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button:hover:not(:disabled) { background: #2ea043; transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { background: #21262d; color: #484f58; border-color: #30363d; cursor: not-allowed; }
+
+    #status { margin-top: 0.75rem; font-size: 0.78rem; color: #8b949e; min-height: 1.2em; text-align: center; }
+
+    /* ── Highlighted text display ── */
+    #result { margin-top: 1.5rem; display: none; }
+
+    .section-label { font-size: 0.72rem; color: #8b949e; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.6rem; }
+
+    #highlighted-text {
+      font-family: 'Amiri', serif;
+      font-size: 1.8rem;
+      line-height: 2.6;
+      direction: rtl;
+      text-align: right;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.5rem;
+      word-spacing: 0.15em;
+    }
+
+    .hl {
+      border-radius: 4px;
+      padding: 0 2px;
+      cursor: pointer;
+      position: relative;
+      transition: filter 0.15s;
+    }
+    .hl:hover { filter: brightness(1.3); }
+
+    /* category colors — clearly distinct */
+    .hl-noon  { background: rgba(63,185,80,0.15);  border-bottom: 2px solid #3fb950; color: #7ee787; }
+    .hl-meem  { background: rgba(88,166,255,0.15); border-bottom: 2px solid #58a6ff; color: #79c0ff; }
+    .hl-madd  { background: rgba(227,179,65,0.15); border-bottom: 2px solid #e3b341; color: #f0c040; }
+    .hl-qalqalah { background: rgba(248,81,73,0.15);  border-bottom: 2px solid #f85149; color: #ff7b72; }
+
+    /* ── Tooltip ── */
+    .hl .tooltip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 50%;
+      transform: translateX(50%);
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      white-space: nowrap;
+      z-index: 10;
+      pointer-events: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .hl:hover .tooltip { display: block; }
+    .tooltip-rule { font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600; color: #fff; direction: ltr; text-align: left; }
+    .tooltip-desc { font-family: 'Inter', sans-serif; font-size: 0.7rem; color: #8b949e; margin-top: 0.2rem; direction: ltr; text-align: left; }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      color: #8b949e;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 20px;
+      padding: 0.25rem 0.6rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      user-select: none;
+    }
+    .legend-item:hover { border-color: #484f58; }
+    .legend-item.active { color: #e6edf3; border-color: #484f58; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-noon  { background: #3fb950; }
+    .dot-meem  { background: #58a6ff; }
+    .dot-madd  { background: #e3b341; }
+    .dot-other  { background: #fb923c; }
+    .dot-qalqalah { background: #f85149; }
+
+    /* ── Rule list ── */
+    .rules-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .rule-item:hover { border-color: #484f58; }
+    .rule-item .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .rule-item .name { font-size: 0.82rem; font-weight: 600; color: #e6edf3; flex: 1; }
+    .rule-item .word { font-family: 'Amiri', serif; font-size: 1.3rem; line-height: 1.6; direction: rtl; }
+    .rule-item .desc { font-size: 0.7rem; color: #8b949e; }
+
+    .word-noon  { color: #7ee787; }
+    .word-meem  { color: #79c0ff; }
+    .word-madd  { color: #f0c040; }
+    .word-other  { color: #fb923c; }
+    .word-qalqalah { color: #ff7b72; }
+
+    .result-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+    .result-count { font-size: 0.72rem; background: #1c2128; color: #3fb950; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600; }
+
+    .empty { color: #484f58; font-size: 0.85rem; text-align: center; padding: 1.5rem 0; }
+    .error-msg { color: #f85149; font-size: 0.8rem; }
+    .footer { margin-top: 1.5rem; font-size: 0.85rem; color: #484f58; text-align: center; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">Tahseen <span>Checker</span></div>
+    <div class="tagline">Tajwid Rule Detector</div>
+  </div>
+
+  <div class="card">
+    <div class="input-label">Arabic Text</div>
+    <textarea id="text" placeholder="بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"></textarea>
+    <button id="submit-btn" onclick="submitCheck()">Analyze Tajwid</button>
+    <div id="status"></div>
+
+    <div id="result">
+      <!-- highlighted text -->
+      <div class="section-label" style="margin-top:1.5rem">Annotated Text</div>
+      <div id="highlighted-text"></div>
+
+      <!-- legend -->
+      <div class="legend" id="legend"></div>
+
+      <!-- rule list -->
+      <div class="result-header">
+        <div class="section-label" style="margin:0">All Rules</div>
+        <span class="result-count" id="rule-count">0</span>
+      </div>
+      <div class="rules-grid" id="rules-list"></div>
+    </div>
+  </div>
+
+  <div class="footer">Learn Tajwid, One Ayah at a Time</div>
+
+  <script>
+    const API = '';
+
+    const CATEGORIES = {
+      noon:  ['Idzhar Halqi','Idgham Bighunnah','Idgham Bilaghunnah','Iqlab','Ikhfa Haqiqi'],
+      meem:  ['Idzhar Syafawi','Idgham Mimi','Ikhfa Syafawi'],
+      madd:  ['Madd Thabii','Madd Wajib Muttasil','Madd Jaiz Munfasil','Madd Aridh Lissukun',
+              'Madd Lazim','Madd Silah Qasirah','Madd Silah Thawilah'],
+      other: ['Ghunnah'],
+      qalqalah: ['Qalqalah'],
+    };
+    const CAT_LABELS = { noon:'Noon Sakinah / Tanwin', meem:'Meem Sakinah', madd:'Madd', other:'Other', qalqalah:'Qalqalah' };
+
+    function getCategory(rule) {
+      for (const [cat, rules] of Object.entries(CATEGORIES))
+        if (rules.includes(rule)) return cat;
+      return 'other';
+    }
+
+    async function submitCheck() {
+      const text = document.getElementById('text').value.trim();
+      if (!text) return;
+      const btn = document.getElementById('submit-btn');
+      const status = document.getElementById('status');
+      document.getElementById('result').style.display = 'none';
+      btn.disabled = true;
+      status.textContent = 'Analyzing…';
+      try {
+        const res = await fetch(`${API}/check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { job_id } = await res.json();
+        pollResult(job_id, text);
+      } catch (e) {
+        status.innerHTML = `<span class="error-msg">Error: ${e.message}</span>`;
+        btn.disabled = false;
+      }
+    }
+
+    async function pollResult(jobId, originalText) {
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submit-btn');
+      let attempts = 0;
+      const poll = async () => {
+        attempts++;
+        try {
+          const res = await fetch(`${API}/result/${jobId}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (data.status === 'completed') {
+            showResult(data.result, originalText);
+            status.textContent = '';
+            btn.disabled = false;
+            return;
+          }
+          if (data.status === 'error') {
+            status.innerHTML = `<span class="error-msg">Error: ${data.error || 'unknown'}</span>`;
+            btn.disabled = false;
+            return;
+          }
+          if (attempts >= 30) {
+            status.innerHTML = `<span class="error-msg">Timed out.</span>`;
+            btn.disabled = false;
+            return;
+          }
+          setTimeout(poll, 1000);
+        } catch (e) {
+          status.innerHTML = `<span class="error-msg">Poll error: ${e.message}</span>`;
+          btn.disabled = false;
+        }
+      };
+      setTimeout(poll, 500);
+    }
+
+    function showResult(resultJson, originalText) {
+      const resultBox = document.getElementById('result');
+      const rulesList = document.getElementById('rules-list');
+      const ruleCount = document.getElementById('rule-count');
+      const legendEl  = document.getElementById('legend');
+      const hlText    = document.getElementById('highlighted-text');
+      resultBox.style.display = 'block';
+
+      let rules = [];
+      try { rules = JSON.parse(resultJson); } catch (_) {}
+      ruleCount.textContent = rules.length;
+
+      if (!rules.length) {
+        hlText.innerHTML = `<span style="color:#333;font-family:'Inter',sans-serif;font-size:0.85rem">No tajwid rules detected.</span>`;
+        legendEl.innerHTML = '';
+        rulesList.innerHTML = '';
+        return;
+      }
+
+      // Quranic non-letter marks to ignore when matching
+      const QURAN_MARKS = /[\u0600-\u0605\u06DD\u08D3-\u08E2]/g;
+      const stripMarks = s => s.replace(QURAN_MARKS, '');
+
+      const wordMap = {};
+      rules.forEach(r => {
+        const cat = getCategory(r.rule);
+        const key = stripMarks(r.word);
+        if (!wordMap[key]) wordMap[key] = [];
+        wordMap[key].push({ rule: r.rule, cat, desc: r.description });
+      });
+
+      // split original text into words, wrap matches
+      const words = originalText.split(' ');
+      hlText.innerHTML = words.map(w => {
+        const wClean = stripMarks(w);
+        if (!wordMap[wClean]) return w;
+        const hits = wordMap[wClean];
+        // use first hit's category for color (multiple rules on same word → first)
+        const cat = hits[0].cat;
+        const tooltipHtml = hits.map(h =>
+          `<div class="tooltip-rule">${h.rule}</div><div class="tooltip-desc">${h.desc}</div>`
+        ).join('<hr style="border-color:#2a2a4a;margin:0.3rem 0">');
+        return `<span class="hl hl-${cat}">${w}<span class="tooltip">${tooltipHtml}</span></span>`;
+      }).join(' ');
+
+      // ── Legend ─────────────────────────────────────────────────
+      const usedCats = [...new Set(rules.map(r => getCategory(r.rule)))];
+      legendEl.innerHTML = usedCats.map(cat => `
+        <div class="legend-item active" data-cat="${cat}">
+          <div class="legend-dot dot-${cat}"></div>
+          ${CAT_LABELS[cat]}
+        </div>
+      `).join('');
+
+      // toggle visibility by category
+      legendEl.querySelectorAll('.legend-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const cat = item.dataset.cat;
+          item.classList.toggle('active');
+          const visible = item.classList.contains('active');
+          document.querySelectorAll(`.hl-${cat}`).forEach(el => {
+            el.style.opacity = visible ? '1' : '0.15';
+          });
+          document.querySelectorAll(`.rule-item[data-cat="${cat}"]`).forEach(el => {
+            el.style.opacity = visible ? '1' : '0.15';
+          });
+        });
+      });
+
+      // ── Rule list ──────────────────────────────────────────────
+      rulesList.innerHTML = rules.map(r => {
+        const cat = getCategory(r.rule);
+        return `
+          <div class="rule-item" data-cat="${cat}">
+            <div class="dot dot-${cat}"></div>
+            <div class="name">${r.rule}</div>
+            <div class="word word-${cat}">${r.word}</div>
+            <div class="desc">${r.description}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
