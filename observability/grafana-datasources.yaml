@@ -11,6 +11,9 @@ datasources:
     jsonData:
       timeInterval: 15s
       httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: tempo
 
   - name: Loki
     uid: loki

@@ -13,6 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 )
 
 const (
@@ -38,12 +40,24 @@ type ResultResponse struct {
 }
 
 var rdb *redis.Client
+var checkDuration metric.Float64Histogram
 
 func main() {
 	ctx := context.Background()
 	shutdown, logger := initOTel(ctx, "tahseen-api")
 	defer shutdown()
 	slog.SetDefault(logger)
+
+	var err error
+	checkDuration, err = otel.Meter("tahseen-api").Float64Histogram(
+		"tahseen_check_duration_seconds",
+		metric.WithDescription("Duration of /check requests"),
+		metric.WithUnit("s"),
+		metric.WithExplicitBucketBoundaries(0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5),
+	)
+	if err != nil {
+		slog.Error("failed to create histogram", "error", err)
+	}
 
 	redisAddr := os.Getenv("REDIS_ADDR")
 	if redisAddr == "" {
@@ -87,6 +101,8 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCheck(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	var req CheckRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Text == "" {
 		http.Error(w, `{"error":"invalid request, text is required"}`, http.StatusBadRequest)
@@ -118,6 +134,7 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	slog.InfoContext(ctx, "job enqueued", "job_id", jobID)
+	checkDuration.Record(ctx, time.Since(start).Seconds())
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)

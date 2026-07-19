@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/sdk/metric/exemplar"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
@@ -47,6 +48,7 @@ func initOTel(ctx context.Context, serviceName string) (shutdown func(), logger 
 			sdkmetric.WithInterval(10*time.Second),
 		)),
 		sdkmetric.WithResource(res),
+		sdkmetric.WithExemplarFilter(exemplar.AlwaysOnFilter),
 	)
 	otel.SetMeterProvider(mp)
 
