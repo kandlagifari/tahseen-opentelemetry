@@ -7,9 +7,9 @@ import (
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -24,7 +24,7 @@ func initOTel(ctx context.Context, serviceName string) (shutdown func(), logger 
 		semconv.ServiceName(serviceName),
 	)
 
-	traceExp, err := otlptracegrpc.New(ctx)
+	traceExp, err := otlptracehttp.New(ctx)
 	if err != nil {
 		slog.Error("failed to create trace exporter", "error", err)
 	}
@@ -38,7 +38,7 @@ func initOTel(ctx context.Context, serviceName string) (shutdown func(), logger 
 		propagation.Baggage{},
 	))
 
-	metricExp, err := otlpmetricgrpc.New(ctx)
+	metricExp, err := otlpmetrichttp.New(ctx)
 	if err != nil {
 		slog.Error("failed to create metric exporter", "error", err)
 	}
@@ -50,7 +50,7 @@ func initOTel(ctx context.Context, serviceName string) (shutdown func(), logger 
 	)
 	otel.SetMeterProvider(mp)
 
-	logExp, err := otlploggrpc.New(ctx)
+	logExp, err := otlploghttp.New(ctx)
 	if err != nil {
 		slog.Error("failed to create log exporter", "error", err)
 	}

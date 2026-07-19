@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	queueKey      = "tahseen:queue"
+	queueKey        = "tahseen:queue"
 	resultKeyPrefix = "tahseen:result:"
-	resultTTL     = 1 * time.Hour
+	resultTTL       = 1 * time.Hour
 )
 
 type CheckRequest struct {
@@ -104,7 +104,6 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	// Store initial status in Redis
 	rdb.HSet(ctx, resultKeyPrefix+jobID, map[string]string{
 		"job_id":     jobID,
 		"status":     "queued",
@@ -112,14 +111,13 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 	})
 	rdb.Expire(ctx, resultKeyPrefix+jobID, resultTTL)
 
-	// Push job to queue
 	if err := rdb.LPush(ctx, queueKey, jobJSON).Err(); err != nil {
-		slog.Error("failed to enqueue job", "job_id", jobID, "error", err)
+		slog.ErrorContext(ctx, "failed to enqueue job", "job_id", jobID, "error", err)
 		http.Error(w, `{"error":"failed to enqueue job"}`, http.StatusInternalServerError)
 		return
 	}
 
-	slog.Info("job enqueued", "job_id", jobID)
+	slog.InfoContext(ctx, "job enqueued", "job_id", jobID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
