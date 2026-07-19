@@ -27,6 +27,12 @@ configMapGenerator:
   - name: grafana-datasources
     files:
       - configs/grafana-datasources.yaml
+  - name: grafana-dashboard-provider
+    files:
+      - configs/grafana-dashboard-provider.yaml
+  - name: grafana-slo-dashboard
+    files:
+      - configs/slo-dashboard.json
   - name: grafana-env-config
     literals:
       - GF_AUTH_ANONYMOUS_ENABLED=true

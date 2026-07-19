@@ -31,10 +31,22 @@ spec:
             - name: datasources
               mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
               subPath: grafana-datasources.yaml
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards/provider.yaml
+              subPath: grafana-dashboard-provider.yaml
+            - name: slo-dashboard
+              mountPath: /etc/grafana/provisioning/dashboards/slo-dashboard.json
+              subPath: slo-dashboard.json
       volumes:
         - name: datasources
           configMap:
             name: grafana-datasources
+        - name: dashboard-provider
+          configMap:
+            name: grafana-dashboard-provider
+        - name: slo-dashboard
+          configMap:
+            name: grafana-slo-dashboard
 ---
 apiVersion: v1
 kind: Service
