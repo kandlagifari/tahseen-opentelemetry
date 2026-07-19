@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: observability
+
+resources:
+  - namespace.yaml
+  - otel-collector.yaml
+  - prometheus.yaml
+  - loki.yaml
+  - tempo.yaml
+  - grafana.yaml
+
+configMapGenerator:
+  - name: otel-collector-config
+    files:
+      - configs/otel-collector-config.yaml
+  - name: prometheus-config
+    files:
+      - configs/prometheus-config.yaml
+  - name: loki-config
+    files:
+      - configs/loki-config.yaml
+  - name: tempo-config
+    files:
+      - configs/tempo-config.yaml
+  - name: grafana-datasources
+    files:
+      - configs/grafana-datasources.yaml
+  - name: grafana-env-config
+    literals:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor

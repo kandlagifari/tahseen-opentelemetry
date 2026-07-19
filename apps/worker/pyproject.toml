@@ -2,7 +2,7 @@
 name = "worker"
 version = "0.1.0"
 description = "Add your description here"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "redis>=8.0.1",
     "opentelemetry-sdk>=1.27.0",

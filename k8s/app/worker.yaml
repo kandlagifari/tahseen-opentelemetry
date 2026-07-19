@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tahseen-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tahseen-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tahseen-worker
+    spec:
+      containers:
+        - name: worker
+          image: kandlagifari/tahseen-worker:latest
+          env:
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: LOG_LEVEL
+              value: INFO
+            - name: OTEL_SERVICE_NAME
+              value: tahseen-worker
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4318
+            - name: FAULT_MODE
+              value: "false"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
