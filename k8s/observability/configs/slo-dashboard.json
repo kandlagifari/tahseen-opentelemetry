@@ -14,7 +14,7 @@
       "targets": [
         {
           "expr": "histogram_quantile(0.95, rate(tahseen_check_duration_seconds_bucket[5m]))",
-          "legendFormat": "p95 latency"
+          "legendFormat": "p95 {{exported_job}}"
         }
       ],
       "fieldConfig": {
