@@ -67,7 +67,7 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "targets": [
         {
-          "expr": "redis_list_length{key=\"tahseen:queue\"}",
+          "expr": "redis_key_size{key=\"tahseen:queue\"}",
           "legendFormat": "queue depth"
         }
       ],
