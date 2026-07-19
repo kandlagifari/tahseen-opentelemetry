@@ -14,8 +14,6 @@ spec:
     spec:
       securityContext:
         runAsUser: 0
-      securityContext:
-        runAsUser: 0
       containers:
         - name: loki
           image: grafana/loki:3.6.6
