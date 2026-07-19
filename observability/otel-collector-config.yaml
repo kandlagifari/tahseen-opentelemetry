@@ -15,8 +15,8 @@ processors:
     limit_mib: 512
 
 exporters:
-  otlp/tempo:
-    endpoint: tempo:4317
+  otlphttp/tempo:
+    endpoint: http://tempo:4318
     tls:
       insecure: true
   prometheus:
@@ -40,7 +40,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/tempo]
+      exporters: [otlphttp/tempo]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
