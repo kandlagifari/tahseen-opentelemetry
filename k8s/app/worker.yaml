@@ -27,7 +27,7 @@ spec:
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://otel-collector.observability.svc.cluster.local:4318
             - name: FAULT_MODE
-              value: "false"
+              value: "true"
             - name: PYTHONUNBUFFERED
               value: "1"
           resources:
