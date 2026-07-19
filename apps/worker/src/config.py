@@ -10,6 +10,8 @@ class Config:
     result_key_prefix: str
     result_ttl: int
     log_level: str
+    otel_endpoint: str
+    fault_mode: bool
 
     @classmethod
     def from_env(cls) -> "Config":
@@ -20,4 +22,6 @@ class Config:
             result_key_prefix="tahseen:result:",
             result_ttl=3600,
             log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
+            otel_endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4318"),
+            fault_mode=os.getenv("FAULT_MODE", "").lower() in ("1", "true", "yes"),
         )

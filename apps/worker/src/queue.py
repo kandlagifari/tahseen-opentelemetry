@@ -3,8 +3,23 @@ import logging
 from typing import Any, Dict, Optional
 
 import redis
+from opentelemetry import trace
+from opentelemetry.propagators.textmap import DefaultGetter
+from opentelemetry.propagate import extract
 
 logger = logging.getLogger(__name__)
+
+
+class _DictGetter(DefaultGetter):
+    def get(self, carrier: dict, key: str):
+        val = carrier.get(key)
+        return [val] if val is not None else []
+
+    def keys(self, carrier: dict):
+        return list(carrier.keys())
+
+
+_getter = _DictGetter()
 
 
 class QueueConsumer:
@@ -36,6 +51,10 @@ class QueueConsumer:
             return None
         _, job_json = result
         job = json.loads(job_json)
+        # extract W3C trace context injected by the API so the worker span
+        # becomes a child of the originating request span
+        ctx = extract(job, getter=_getter)
+        job["_otel_ctx"] = ctx
         logger.info("received job", extra={"job_id": job.get("job_id")})
         return job
 

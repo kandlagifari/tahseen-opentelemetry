@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 const (
@@ -116,9 +117,12 @@ func handleCheck(w http.ResponseWriter, r *http.Request) {
 		"created_at": time.Now().UTC().Format(time.RFC3339),
 	}
 
-	jobJSON, _ := json.Marshal(job)
-
 	ctx := r.Context()
+
+	// inject W3C trace context so the worker can continue the same trace
+	otel.GetTextMapPropagator().Inject(ctx, propagation.MapCarrier(job))
+
+	jobJSON, _ := json.Marshal(job)
 
 	rdb.HSet(ctx, resultKeyPrefix+jobID, map[string]string{
 		"job_id":     jobID,
