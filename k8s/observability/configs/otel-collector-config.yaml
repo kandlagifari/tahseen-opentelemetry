@@ -15,8 +15,6 @@ processors:
     limit_mib: 512
 
 exporters:
-  debug:
-    verbosity: detailed
   otlphttp/tempo:
     endpoint: http://tempo:4318
     tls:
@@ -42,12 +40,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/tempo, debug]
+      exporters: [otlphttp/tempo]
     metrics:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [prometheus, debug]
+      exporters: [prometheus]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/loki, debug]
+      exporters: [otlphttp/loki]
