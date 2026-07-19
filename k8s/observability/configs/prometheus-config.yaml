@@ -22,4 +22,4 @@ scrape_configs:
       - targets: ['otel-collector:8888']
   - job_name: 'redis'
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: ['redis-exporter.tahseen-app.svc.cluster.local:9121']
