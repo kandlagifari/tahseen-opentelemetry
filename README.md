@@ -2,8 +2,6 @@
 
 A distributed async workload instrumented end-to-end with OpenTelemetry, deployed to Kubernetes via ArgoCD and Helm.
 
-**Blog post series:** [OpenTelemetry + Grafana Stack on Kubernetes](https://sleepingknight.dev/posts/opentelemetry-with-lgtm-part-1)
-
 ---
 
 ## Architecture
