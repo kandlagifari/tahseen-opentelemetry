@@ -28,6 +28,8 @@ spec:
               value: http://otel-collector.observability.svc.cluster.local:4318
             - name: FAULT_MODE
               value: "false"
+            - name: PYTHONUNBUFFERED
+              value: "1"
           resources:
             requests:
               cpu: 100m
